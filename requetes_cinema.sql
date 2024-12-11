@@ -44,7 +44,7 @@ SELECT genre.nom_genre,
 COUNT(film_genre.id_genre) AS nombre_de_films
 FROM genre
 INNER JOIN film_genre ON genre.id_genre = film_genre.id_genre
-GROUP BY genre.nom_genre
+GROUP BY genre.id_genre     -- préférer utiliser GROUP BY sur les clés primaires
 ORDER BY nombre_de_films DESC;
 
 
@@ -55,7 +55,7 @@ SELECT
 FROM film
 INNER JOIN realisateur ON film.id_realisateur = realisateur.id_realisateur
 INNER JOIN personne ON realisateur.id_personne = personne.id_personne
-GROUP BY realisateur
+GROUP BY realisateur.id_realisateur
 ORDER BY nombre_de_films DESC;
 
 
@@ -72,10 +72,13 @@ WHERE film.id_film = 9;
 
 -- g. Films tournés par un acteur en particulier (id_acteur) avec leur rôle et l’année de 
 -- sortie (du film le plus récent au plus ancien)
-SELECT f.titre, f.sortie, c.id_role
+SELECT p.prenom, p.nom, f.titre, f.sortie, r.nom_role
 FROM film f
-JOIN casting c ON f.id_film = c.id_film
-WHERE id_acteur = 4
+INNER JOIN casting c ON f.id_film = c.id_film
+INNER JOIN role r ON c.id_role = r.id_role
+INNER JOIN acteur a ON c.id_acteur = a.id_acteur
+INNER JOIN personne p ON a.id_personne = p.id_personne
+WHERE a.id_acteur = 4
 ORDER BY f.sortie DESC;
 
 
@@ -94,8 +97,8 @@ FROM film
 WHERE film.sortie >= DATE_SUB(CURRENT_DATE, INTERVAL 15 YEAR)   -- films datant de moins de 15 ans pour adapter à ma BDD
 ORDER BY film.sortie DESC;
 
--- j. Nombre d’hommes et de femmes parmi les acteurs
 
+-- j. Nombre d’hommes et de femmes parmi les acteurs
 SELECT
     COUNT(id_acteur * sexe = "F") AS nbre_actrices,
     COUNT(id_acteur * sexe = "H") AS nbre_acteurs
@@ -105,7 +108,6 @@ GROUP BY personne.sexe;
 
 
 -- k. Liste des acteurs ayant plus de 50 ans (âge révolu et non révolu)
-
 SELECT
     id_personne,
     CONCAT(prenom, " ", nom) AS identite, naissance,
@@ -124,8 +126,8 @@ FROM personne
 WHERE (YEAR(CURRENT_DATE) - naissance) >= 50
 ORDER BY naissance DESC;
 
--- l. Acteurs ayant joué dans 3 films ou plus
 
+-- l. Acteurs ayant joué dans 3 films ou plus
 SELECT
     personne.id_personne,
     CONCAT(personne.prenom, " ", personne.nom) AS identite,
@@ -133,7 +135,6 @@ SELECT
 FROM casting
 INNER JOIN acteur ON casting.id_acteur = acteur.id_acteur
 INNER JOIN personne ON acteur.id_personne = personne.id_personne
-GROUP BY identite
+GROUP BY personne.id_personne
 HAVING total_film >= 3;
-
 
